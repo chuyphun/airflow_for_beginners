@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 
 import requests
 from airflow.hooks.S3_hook import S3Hook
-from airflow.hooks.postgres_hook import PostgresHook
+#from airflow.hooks.postgres_hook import PostgresHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.models import Variable
 
 from jinja2 import Environment, FileSystemLoader
@@ -56,24 +57,24 @@ def insert_question_to_db():
             title,
             is_answered,
             link,
-            owner_reputation, 
-            score, 
+            owner_reputation,
+            score,
             tags)
-        VALUES (%s, %s, %s, %s, %s, %s, %s); 
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
         """
 
     rows = call_stack_overflow_api()
     for row in rows:
         row = tuple(row.values())
-        pg_hook = PostgresHook(postgres_conn_id="postgres_connection")
+        pg_hook = PostgresHook(postgres_conn_id="postgres_conn_id")
         pg_hook.run(insert_question_query, parameters=row)
 
 
 def filter_questions() -> str:
-    """ 
+    """
     Read all questions from the database and filter them.
     Returns a JSON string that looks like:
-    
+
     [
         {
         "title": "Question Title",
@@ -83,7 +84,7 @@ def filter_questions() -> str:
         "question_id": 0000001
         },
     ]
-    
+
     """
     columns = ("title", "is_answered", "link", "tags", "question_id")
     filtering_query = """
@@ -91,7 +92,7 @@ def filter_questions() -> str:
         FROM public.questions
         WHERE score >= 1 AND owner_reputation > 1000;
         """
-    pg_hook = PostgresHook(postgres_conn_id="postgres_connection").get_conn()
+    pg_hook = PostgresHook(postgres_conn_id="postgres_conn_id").get_conn()
 
     with pg_hook.cursor("serverCursor") as pg_cursor:
         pg_cursor.execute(filtering_query)
@@ -101,7 +102,7 @@ def filter_questions() -> str:
 
 
 def write_questions_to_s3():
-    hook = S3Hook(aws_conn_id="s3_connection")
+    hook = S3Hook(aws_conn_id="s3_conn")
     hook.load_string(
         string_data=filter_questions(),
         key=S3_FILE_NAME,
@@ -113,7 +114,7 @@ def write_questions_to_s3():
 def render_template(**context):
     """ Render HTML template using questions metadata from S3 bucket """
 
-    hook = S3Hook(aws_conn_id="s3_connection")
+    hook = S3Hook(aws_conn_id="s3_conn")
     file_content = hook.read_key(
         key=S3_FILE_NAME, bucket_name=Variable.get("S3_BUCKET")
     )

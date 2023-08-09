@@ -1,3 +1,34 @@
+## Installation
+postgres, amazon
+
+
+## APIs
+1. [Stack Exchange API](https://api.stackexchange.com/)
+    - [Registeration](https://stackapps.com/apps/oauth/register). You will
+      be asked to fill in a form, in particular,
+        - Fill in the **OAuth Domain** by **`stackexchange.com`** as suggested
+          in <https://stackapps.com/questions/7857/what-exactly-is-a-valid-oauth-domain-name-for-registering-your-app?rq=1>
+        - **Application Website**: I don't really know what to fill in to this, but
+          it kind of just works when I gave it my own personal website
+        - Check the checkbox saying **Enable Client Side OAuth Flow**
+        - (Optional) As a last step, I followed **the implicit OAuth 2.0 flow** on
+          [this webpage](https://api.stackexchange.com/docs/authentication):
+          More precisely, I typed this url into my browser
+          <https://stackoverflow.com/oauth/dialog?client_id=26942&scope=no_expiry&redirect_uri=https%3a%2f%2fstackexchange.com%2foauth%2flogin_success>  
+          Browser to that webpage and click on the **Approve** button
+        - In order for Airflow to recognize the key, id and secret, one could
+          ```shell
+          export AIRFLOW_VAR_STACK_OVERFLOW_KEY=<key>
+          export AIRFLOW_VAR_STACK_OVERFLOW_CLIENT_ID=<client_id>
+          export AIRFLOW_VAR_STACK_OVERFLOW_CLIENT_SECRET=<client_secret>
+          ```
+          before one execute `airflow scheduler`
+    - [View existing apps](https://stackapps.com/apps/oauth)
+    - [doc](https://api.stackexchange.com/docs)
+
+
+
+## Slides and YouTube Video
 This is a small example of the workflow built with Apache Airflow.
 
 You can find slides [here](https://www.slideshare.net/varyakarpenko5/airflow-for-beginners) and watch the talk [here](https://www.youtube.com/watch?v=YWtfU0MQZ_4)

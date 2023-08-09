@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.email_operator import EmailOperator
-from airflow.operators.postgres_operator import PostgresOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.email import EmailOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.operators.python import PythonOperator
 
-from utils import insert_question, write_questions_to_s3, render_template
+from utils import insert_question_to_db, write_questions_to_s3, render_template
 
-from dags.utils import insert_question_to_db
+#from dags.utils import insert_question_to_db
 
 default_args = {
     "owner": "me",
@@ -25,8 +25,8 @@ with DAG("stack_overflow_questions", default_args=default_args) as dag:
 
     Task_I = PostgresOperator(
         task_id="create_table",
-        postgres_conn_id="postgres_connection",
-        database="stack_overflow",
+        postgres_conn_id="postgres_conn_id",
+        database="airflow_db",
         sql="""
         DROP TABLE IF EXISTS public.questions;
         CREATE TABLE public.questions
@@ -58,7 +58,7 @@ with DAG("stack_overflow_questions", default_args=default_args) as dag:
 
     Task_V = EmailOperator(
         task_id="send_email",
-        provide_context=True,
+        #provide_context=True,
         to="my_email@mail.com",
         subject="Top questions with tag 'pandas' on {{ ds }}",
         html_content="{{ task_instance.xcom_pull(task_ids='render_template', key='html_content') }}",
