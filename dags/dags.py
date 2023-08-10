@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -59,7 +60,8 @@ with DAG("stack_overflow_questions", default_args=default_args) as dag:
     Task_V = EmailOperator(
         task_id="send_email",
         #provide_context=True,
-        to="my_email@mail.com",
+        #to="my_email@mail.com",
+        to=os.environ["USER"],
         subject="Top questions with tag 'pandas' on {{ ds }}",
         html_content="{{ task_instance.xcom_pull(task_ids='render_template', key='html_content') }}",
     )
